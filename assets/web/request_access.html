@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Request Access - Tappy File Transfer</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+            background-color: #f4f7f6;
+            color: #333;
+            margin: 0;
+            padding: 2em;
+            display: flex;
+            justify-content: center;
+            align-items: flex-start;
+            min-height: 100vh;
+        }
+        .container {
+            width: 100%;
+            max-width: 400px;
+            background: #fff;
+            border-radius: 8px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+            padding: 2em;
+            text-align: center;
+        }
+        h1 {
+            color: #007bff;
+            margin-bottom: 0.5em;
+        }
+        p {
+            color: #666;
+        }
+        #requestAccessBtn {
+            background-color: #007bff;
+            color: white;
+            border: none;
+            padding: 1em 2em;
+            border-radius: 6px;
+            font-size: 1em;
+            font-weight: bold;
+            cursor: pointer;
+            transition: background-color 0.2s;
+            margin-top: 2em;
+        }
+        #requestAccessBtn:hover {
+            background-color: #0056b3;
+        }
+        #access-status {
+            margin-top: 1.5em;
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+<div class="container">
+    <h1>Tappy</h1>
+    <p>Request access to upload or download files from this device.</p>
+    <button id="requestAccessBtn">Request Access</button>
+    <div id="access-status"></div>
+</div>
+<script>
+const requestAccessBtn = document.getElementById('requestAccessBtn');
+const accessStatus = document.getElementById('access-status');
+
+requestAccessBtn.addEventListener('click', async () => {
+    accessStatus.textContent = 'Requesting access...';
+    try {
+        const res = await fetch('/request-access', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ client: navigator.userAgent })
+        });
+        if (res.ok) {
+            const data = await res.json();
+            accessStatus.textContent = 'Access granted! Redirecting...';
+            // Redirect to upload.html with token in URL
+            window.location.href = '/upload.html?token=' + encodeURIComponent(data.token);
+        } else {
+            const msg = await res.text();
+            accessStatus.textContent = 'Access denied: ' + msg;
+        }
+    } catch (e) {
+        accessStatus.textContent = 'Error requesting access: ' + e;
+    }
+});
+</script>
+</body>
+</html> 
