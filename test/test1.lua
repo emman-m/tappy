@@ -4,8 +4,8 @@ screenGui.Parent = game.Players.LocalPlayer:WaitForChild("PlayerGui")
 
 -- Create the popup frame
 local popup = Instance.new("Frame")
-popup.Size = UDim2.new(0, 250, 0, 200)
-popup.Position = UDim2.new(0.5, -125, 0.5, -100) -- center
+popup.Size = UDim2.new(0, 250, 0, 150)
+popup.Position = UDim2.new(0.5, -125, 0.5, -75)
 popup.BackgroundColor3 = Color3.fromRGB(50, 50, 50)
 popup.Parent = screenGui
 
@@ -13,7 +13,7 @@ popup.Parent = screenGui
 local title = Instance.new("TextLabel")
 title.Size = UDim2.new(1, 0, 0, 30)
 title.BackgroundColor3 = Color3.fromRGB(80, 80, 80)
-title.Text = "Storage Bag"
+title.Text = "Current Held Item"
 title.TextColor3 = Color3.fromRGB(255, 255, 255)
 title.Parent = popup
 
@@ -31,25 +31,15 @@ minimizeBtn.Position = UDim2.new(1, -90, 1, -40)
 minimizeBtn.Text = "Minimize"
 minimizeBtn.Parent = popup
 
--- Storage bag (table to hold items)
-local storageBag = {}
-
--- Add Item button
-local addItemBtn = Instance.new("TextButton")
-addItemBtn.Size = UDim2.new(0, 180, 0, 30)
-addItemBtn.Position = UDim2.new(0.5, -90, 0, 40)
-addItemBtn.Text = "Add Item to Bag"
-addItemBtn.Parent = popup
-
--- Label to show bag contents
-local bagContents = Instance.new("TextLabel")
-bagContents.Size = UDim2.new(1, -20, 0, 80)
-bagContents.Position = UDim2.new(0, 10, 0, 80)
-bagContents.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
-bagContents.TextColor3 = Color3.fromRGB(255, 255, 255)
-bagContents.TextWrapped = true
-bagContents.Text = "Bag is empty."
-bagContents.Parent = popup
+-- Label to show held item
+local heldItemLabel = Instance.new("TextLabel")
+heldItemLabel.Size = UDim2.new(1, -20, 0, 60)
+heldItemLabel.Position = UDim2.new(0, 10, 0, 50)
+heldItemLabel.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
+heldItemLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
+heldItemLabel.TextWrapped = true
+heldItemLabel.Text = "No item equipped."
+heldItemLabel.Parent = popup
 
 -- Button actions
 closeBtn.MouseButton1Click:Connect(function()
@@ -57,29 +47,35 @@ closeBtn.MouseButton1Click:Connect(function()
 end)
 
 minimizeBtn.MouseButton1Click:Connect(function()
-    if popup.Size == UDim2.new(0, 250, 0, 200) then
-        popup.Size = UDim2.new(0, 250, 0, 30) -- shrink to title bar
+    if popup.Size == UDim2.new(0, 250, 0, 150) then
+        popup.Size = UDim2.new(0, 250, 0, 30)
     else
-        popup.Size = UDim2.new(0, 250, 0, 200) -- restore
+        popup.Size = UDim2.new(0, 250, 0, 150)
     end
 end)
 
--- Function to update bag contents label
-local function updateBagLabel()
-    if #storageBag == 0 then
-        bagContents.Text = "Bag is empty."
-    else
-        local text = "Items in Bag:\n"
-        for i, item in ipairs(storageBag) do
-            text = text .. i .. ". " .. item .. "\n"
+-- Function to update held item
+local function updateHeldItem()
+    local player = game.Players.LocalPlayer
+    local character = player.Character or player.CharacterAdded:Wait()
+    local humanoid = character:FindFirstChildOfClass("Humanoid")
+
+    if humanoid then
+        local equippedTool = humanoid:FindFirstChildOfClass("Tool")
+        if equippedTool then
+            heldItemLabel.Text = "Holding: " .. equippedTool.Name
+        else
+            heldItemLabel.Text = "No item equipped."
         end
-        bagContents.Text = text
     end
 end
 
--- Add item button logic
-addItemBtn.MouseButton1Click:Connect(function()
-    local newItem = "HealthPotion" -- example item
-    table.insert(storageBag, newItem)
-    updateBagLabel()
+-- Update whenever tools are equipped/unequipped
+local player = game.Players.LocalPlayer
+player.CharacterAdded:Connect(function(char)
+    char.ChildAdded:Connect(updateHeldItem)
+    char.ChildRemoved:Connect(updateHeldItem)
 end)
+
+-- Initial check
+updateHeldItem()
