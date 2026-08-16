@@ -58,23 +58,29 @@ end)
 local function updateHeldItem()
     local player = game.Players.LocalPlayer
     local character = player.Character or player.CharacterAdded:Wait()
-    local humanoid = character:FindFirstChildOfClass("Humanoid")
 
-    if humanoid then
-        local equippedTool = humanoid:FindFirstChildOfClass("Tool")
-        if equippedTool then
-            heldItemLabel.Text = "Holding: " .. equippedTool.Name
-        else
-            heldItemLabel.Text = "No item equipped."
-        end
+    -- Look for any Tool object inside the character
+    local tool = character:FindFirstChildWhichIsA("Tool")
+    if tool then
+        heldItemLabel.Text = "Holding: " .. tool.Name
+    else
+        heldItemLabel.Text = "No item equipped."
     end
 end
 
--- Update whenever tools are equipped/unequipped
+-- Connect events to detect when tools are equipped/unequipped
 local player = game.Players.LocalPlayer
 player.CharacterAdded:Connect(function(char)
-    char.ChildAdded:Connect(updateHeldItem)
-    char.ChildRemoved:Connect(updateHeldItem)
+    char.ChildAdded:Connect(function(child)
+        if child:IsA("Tool") then
+            updateHeldItem()
+        end
+    end)
+    char.ChildRemoved:Connect(function(child)
+        if child:IsA("Tool") then
+            updateHeldItem()
+        end
+    end)
 end)
 
 -- Initial check
